@@ -12,7 +12,7 @@ from tools.run_shell_command import run_shell_command
 from tools.sustools.sustools import split_by_chromosome_command
 from pipeline.base_pipeline import BasePipeline
 from tools.bismark.bismark_methylation_extractor import BismarkMethylationExtractor
-
+from tools.bamtools.bamtools import bamtools_clean_command
 
 
 
@@ -23,6 +23,16 @@ class SamplePipeline(BasePipeline):
     def __init__(self, sample: Sample):
         self.sample = sample
         self.__dir_info = SampleDirInfo(sample)
+        self.__deduplicated = False
+        self.__filtered = False
+
+    @property
+    def deduplicate(self):
+        return False
+
+    @property
+    def filter(self):
+        return True
 
     @property
     def dir_info(self):
@@ -33,6 +43,30 @@ class SamplePipeline(BasePipeline):
         name = self.sample.name
         name = re.sub("-", "_", name)
         return name
+
+    @property
+    def deduplicated(self):
+        return self.__deduplicated
+
+    @deduplicated.setter
+    def deduplicated(self, value):
+        self.__deduplicated = value
+
+    @property
+    def filtered(self):
+        return self.__filtered
+
+    @filtered.setter
+    def filtered(self, value):
+        self.__filtered = value
+
+    def latest_processed_file(self):
+        if self.filtered:
+            return self.dir_info.filtered_bam_path
+        elif self.deduplicated:
+            return self.dir_info.deduplicated_bam_path
+        else:
+            return self.dir_info.aligned_bam_path
 
     def list_mates(self):
         return self.sample.mates
@@ -47,7 +81,8 @@ class SamplePipeline(BasePipeline):
             shutil.copyfile(files[0], output_file)
 
     def split_bam_by_chromosome(self):
-        command = split_by_chromosome_command(self.dir_info.aligned_bam_path, self.dir_info.splitted_dir)
+        input_file_path = self.latest_processed_file()
+        command = split_by_chromosome_command(input_file_path, self.dir_info.splitted_dir)
         run_shell_command(command)
 
     def extract_methylation(self):
@@ -61,13 +96,24 @@ class SamplePipeline(BasePipeline):
             output = run_shell_command("time " + command)
             print(output)
 
+    def filter_quality(self):
+        input_file_path = self.latest_processed_file()
+        command = bamtools_clean_command(input_file_path, self.dir_info.filtered_bam_path)
+        run_shell_command(command)
+
     def setup(self, clean_output_dir=True):
         self.dir_info.prepare_output_dir(clean=clean_output_dir)
 
     def pipeline(self, clean_output_dir=True):
         self.setup(clean_output_dir)
         self.merge_aligned_bams()
-        # self.call_deduplicate() # probably uncomment in the future runs
+        if self.deduplicate:
+            self.call_deduplicate()
+            self.deduplicated = True
+        if self.filter:
+            self.filter_quality()
+            self.filtered = True
+
         self.split_bam_by_chromosome()
         self.extract_methylation()
 
