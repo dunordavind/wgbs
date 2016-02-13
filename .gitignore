@@ -1,0 +1,8 @@
+*.pyc
+.#*
+*~
+.idea
+.RData
+junk.py
+__init__.py
+*dropbox*
