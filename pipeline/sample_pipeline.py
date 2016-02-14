@@ -2,7 +2,6 @@ import sys
 import os
 import shutil
 import re
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from structures.mate_handler import MateHandler
 from structures.sample import Sample
@@ -13,8 +12,6 @@ from tools.sustools.sustools import split_by_chromosome_command
 from pipeline.base_pipeline import BasePipeline
 from tools.bismark.bismark_methylation_extractor import BismarkMethylationExtractor
 from tools.bamtools.bamtools import bamtools_clean_command
-
-
 
 __author__ = 'med-pvo'
 
@@ -32,7 +29,7 @@ class SamplePipeline(BasePipeline):
 
     @property
     def filter(self):
-        return True
+        return False
 
     @property
     def dir_info(self):
@@ -76,14 +73,14 @@ class SamplePipeline(BasePipeline):
         output_file = self.dir_info.aligned_bam_path
         if len(files) > 1:
             command = samtools_merge_files_command(output_file, files)
-            run_shell_command(command)
+            run_shell_command(command, redirect_output_path=self.dir_info.analysis_log_path, append=True)
         else:
             shutil.copyfile(files[0], output_file)
 
     def split_bam_by_chromosome(self):
         input_file_path = self.latest_processed_file()
         command = split_by_chromosome_command(input_file_path, self.dir_info.splitted_dir)
-        run_shell_command(command)
+        run_shell_command(command, redirect_output_path=self.dir_info.analysis_log_path, append=True)
 
     def extract_methylation(self):
         for file_path in os.listdir(self.dir_info.splitted_dir):
@@ -93,36 +90,48 @@ class SamplePipeline(BasePipeline):
                                                     ncores=45)
             command = extractor.bismark_met_extractor_command()
             print(command)
-            output = run_shell_command("time " + command)
+            output = run_shell_command("time " + command,
+                                       redirect_output_path=self.dir_info.analysis_log_path,
+                                       append=True)
             print(output)
 
     def filter_quality(self):
         input_file_path = self.latest_processed_file()
         command = bamtools_clean_command(input_file_path, self.dir_info.filtered_bam_path)
-        run_shell_command(command)
+        run_shell_command(command, redirect_output_path=self.dir_info.analysis_log_path, append=True)
 
     def setup(self, clean_output_dir=True):
         self.dir_info.prepare_output_dir(clean=clean_output_dir)
 
     def pipeline(self, clean_output_dir=True):
         self.setup(clean_output_dir)
+        print("Merging...")
         self.merge_aligned_bams()
+
         if self.deduplicate:
+            print("Deduplicating...")
             self.call_deduplicate()
             self.deduplicated = True
+
         if self.filter:
+            print("Filtering...")
             self.filter_quality()
             self.filtered = True
 
+        print("Splitting...")
         self.split_bam_by_chromosome()
+
+        print("Extracting...")
         self.extract_methylation()
 
 
 if __name__ == "__main__":
-    mate_handler = MateHandler()
-    sample = mate_handler.get_sample_by_name("112_epignome")
+
+    mate_handler = MateHandler("Config/samples_config.yaml")
+    sample = mate_handler.get_sample_by_name("test_sample")
+    dir_handler = SampleDirInfo(sample)
+    print(bamtools_clean_command(dir_handler.aligned_bam_path, dir_handler.filtered_bam_path))
     # dir_handler = SampleDirInfo(sample)
     # print(dir_handler.list_aligned_bam_files())
     sp = SamplePipeline(sample)
     sp.pipeline()
-

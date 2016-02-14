@@ -7,8 +7,9 @@ from config.project_config import ProjectConfig
 
 __author__ = 'med-pvo'
 
+
 class SampleDirInfo:
-    def     __init__(self, sample):
+    def __init__(self, sample):
         config = ProjectConfig()
         self.sample = sample
         self.__output_dir = os.path.join(config.merged_samples_dir, self.sample.name)
@@ -27,6 +28,11 @@ class SampleDirInfo:
     @property
     def deduplicated_bam_path(self):
         return self.path_in_output_dir("all_mates_merged_deduplicated.bam")
+
+    # where to keep the analysis log
+    @property
+    def analysis_log_path(self):
+        return self.path_in_output_dir("std_output_log.txt")
 
     # name regardless of deduplication. I suppose that filtering should happen after deduplication,
     # so this version of the file is final before splitting
@@ -54,7 +60,7 @@ class SampleDirInfo:
         return os.path.join(self.output_dir, relative_path)
 
     def prepare_output_dir(self, clean=True):
-        #create a directory where all mate data will be stored, if not exist
+        # create a directory where all mate data will be stored, if not exist
         if not os.path.exists(self.output_dir):
             self.create_dirs()
         elif clean:

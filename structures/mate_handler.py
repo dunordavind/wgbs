@@ -43,7 +43,7 @@ class MateHandler():
 
 
 if __name__ == "__main__":
-    m = MateHandler()
+    m = MateHandler("Config/samples_config.yaml")
     sample = m.get_sample_by_name("33_epignome_v3")
     for mate in sample.mates:
         dir_info = MateDirInfo(mate)
