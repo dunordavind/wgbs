@@ -182,7 +182,7 @@ def merge_sample_alignments(args):
     mate_handler = MateHandler(sample_config_file_path)
     sample = mate_handler.get_sample_by_name(sample_name)
     sp = SamplePipeline(sample)
-    submitter = CondorSubmitter(sp, ncores=22, memory=220000)
+    submitter = CondorSubmitter(sp, ncores=22, memory=220000, clean_output_dir=True)
     submitter.run_on_condor()
 
 def align_sample(args):

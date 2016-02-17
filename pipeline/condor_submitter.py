@@ -6,15 +6,22 @@ import pickle
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from config.project_config import ProjectConfig
 from tools.run_shell_command import run_shell_command
+from tools.get_project_base_dir import get_project_base_dir
 from condor.condor_log import CondorLog
 from condor.condor_log_cleaner import CondorLogCleaner
 
 
+
 class CondorSubmitter():
-    def __init__(self, pipeline, ncores=10, memory=10000):
+    def __init__(self, pipeline, ncores=10, memory=10000, clean_output_dir=False):
         self.__pipeline = pipeline
         self.__ncores = ncores
         self.__memory = memory
+        self.__clean_output_dir=clean_output_dir
+
+    @property
+    def clean_output_dir(self):
+        return self.__clean_output_dir
 
     @property
     def pipeline(self):
@@ -37,11 +44,11 @@ class CondorSubmitter():
     def condor_submit_file_contents(self, pickled_str):
         command = "import sys" + "\n"
         command += "import pickle" + "\n"
-        command += "sys.path.append('/mnt/lustre/Home/petr_v/Projects/IsletsWGBS/Private/IsletsWGBS/Scripts/Python/')" + "\n"
-        command += "from pipeline.mate_pipeline import MatePipeline" + "\n"
+        command += "sys.path.append('" + get_project_base_dir() + "')" + "\n"
+        #command += "from pipeline.mate_pipeline import MatePipeline" + "\n"
         command += "pipeline = pickle.loads(" + pickled_str + ")" + "\n"
         command += "print('Analyzing sample:' + pipeline.name)" + "\n"
-        command += "pipeline.pipeline(False)" + "\n"
+        command += "pipeline.pipeline(False)" + "\n" # don't delete after we started!
         return command
 
     def write_condor_submit_file(self):
@@ -65,7 +72,6 @@ class CondorSubmitter():
         command += self.submit_file_path()
         command += "\""
         return command
-
 
     def submit_condor_command(self):
         output = run_shell_command(self.construct_condor_command())
@@ -102,7 +108,7 @@ if __name__ == "__main__":
     #condor_submitter.run_on_condor()
 
     mate_handler = MateHandler()
-    sample = mate_handler.get_sample_by_name("112_epignome")
+    sample = mate_handler.get_sample_by_name("33_epignome_v4")
     sp = SamplePipeline(sample)
     submitter = CondorSubmitter(sp, ncores=45, memory=450000)
     submitter.run_on_condor()

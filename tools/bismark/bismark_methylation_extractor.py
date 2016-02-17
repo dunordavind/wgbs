@@ -27,10 +27,11 @@ class BismarkMethylationExtractor():
         command += self.input_file_path + " "
         command += "--samtools_path " + config.samtools_dir
         command += " --bedGraph "
-        command += " > " + self.log_file_path()
         command += " --ample_memory "
         command += " --multicore " + str(int(self.ncores / 3)) if self.ncores else ""
-        command += " 2>/dev/null"
+        command += " > " + self.log_file_path()
+        command += " 2>" + self.log_file_path()
+        #command += " 2>/dev/null"
         return command
 
     def log_file_path(self):
