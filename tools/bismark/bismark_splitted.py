@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+import config.global_configs as global_configs
 import re
 import multiprocessing as mp
 import subprocess as sp
@@ -11,7 +12,7 @@ from config.project_config import ProjectConfig
 
 
 def call_bismark(file_pairs, output_dir, temp_dir):
-    cfg = ProjectConfig()
+    cfg = global_configs.project_config
     for file_pair in file_pairs:
         command = cfg.bismark_path
         command += " --bowtie2 " if cfg.use_bowtie_2 else " "

@@ -1,20 +1,22 @@
 __author__ = 'med-pvo'
 
-import sys
 import os
 import re
+import sys
+
+import config.global_configs as global_configs
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from config.project_config import ProjectConfig
 import shutil
 
 
 class MateDirInfo:
     def __init__(self, mate):
-        pcfg = ProjectConfig()
+        project_config = global_configs.project_config
         self.__mate = mate
         self.__first = mate.first
         self.__second = mate.second
-        self.__output_dir = os.path.join(pcfg.output_alignment_dir, self.mate.name)
+        self.__output_dir = os.path.join(project_config.output_alignment_dir, self.mate.name)
 
     @property
     def mate(self):

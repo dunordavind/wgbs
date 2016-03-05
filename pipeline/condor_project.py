@@ -1,3 +1,4 @@
+# coding=utf-8
 from config.samples_config import SamplesConfig
 from config.project_config import ProjectConfig
 from structures.mate import Mate

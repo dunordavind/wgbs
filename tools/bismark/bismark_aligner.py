@@ -1,9 +1,8 @@
-__author__ = 'med-pvo'
-
-import glob
+# coding=utf-8
 import os
-import re
-from config.project_config import ProjectConfig
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+import config.global_configs as global_configs
 
 
 class BismarkAligner(object):
@@ -15,7 +14,7 @@ class BismarkAligner(object):
         self.log_file = log_file if log_file else os.path.join(self.output_dir, "log.txt")
 
     def generate_command(self):
-        cfg = ProjectConfig()
+        cfg = global_configs.project_config
         command = cfg.bismark_path
         command += " --bowtie2 " if cfg.use_bowtie_2 else " "
         command += " --path_to_bowtie " + cfg.bowtie_path

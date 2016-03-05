@@ -1,11 +1,7 @@
 import os
-import re
-from config.project_config import ProjectConfig
-
-
-__author__ = 'med-pvo'
-
-
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+import config.global_configs as global_configs
 
 class TrimGalore():
     def __init__(self, first_mate, second_mate, output_dir):
@@ -14,7 +10,7 @@ class TrimGalore():
         self.output_dir = output_dir
 
     def generate_command(self):
-        config = ProjectConfig()
+        config = global_configs.project_config
         command = config.trim_galore_path
         command += " --suppress_warn"
         command += " --trim1 --paired "

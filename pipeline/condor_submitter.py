@@ -1,10 +1,11 @@
 __author__ = 'med-pvo'
 
-import sys
 import os
 import pickle
+import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from config.project_config import ProjectConfig
+import config.global_configs as global_configs
 from tools.run_shell_command import run_shell_command
 from tools.get_project_base_dir import get_project_base_dir
 from condor.condor_log import CondorLog
@@ -41,26 +42,39 @@ class CondorSubmitter():
     def pickle_pipeline(self):
         return str(pickle.dumps(self.pipeline))
 
-    def condor_submit_file_contents(self, pickled_str):
+    def pickle_project_config(self):
+        return str(pickle.dumps(global_configs.project_config))
+
+    def pickle_samples_config(self):
+        return str(pickle.dumps(global_configs.project_config))
+
+    def condor_submit_file_contents(self, pickled_pipeline, pickled_project_config, pickled_samples_config):
         command = "import sys" + "\n"
         command += "import pickle" + "\n"
         command += "sys.path.append('" + get_project_base_dir() + "')" + "\n"
         #command += "from pipeline.mate_pipeline import MatePipeline" + "\n"
-        command += "pipeline = pickle.loads(" + pickled_str + ")" + "\n"
+        command += "import config.global_configs as global_configs" + "\n"
+        command += "project_config = pickle.loads(" + pickled_project_config + ")" + "\n"
+        command += "samples_config = pickle.loads(" + pickled_samples_config + ")" + "\n"
+        command += "setattr(global_configs, 'project_config', project_config)" + "\n"
+        command += "setattr(global_configs, 'samples_config', samples_config)" + "\n"
+        command += "pipeline = pickle.loads(" + pickled_pipeline + ")" + "\n"
         command += "print('Analyzing sample:' + pipeline.name)" + "\n"
         command += "pipeline.pipeline(False)" + "\n" # don't delete after we started!
         return command
 
     def write_condor_submit_file(self):
-        pickled_str = self.pickle_pipeline()
+        pickled_pipeline = self.pickle_pipeline()
+        pickled_project_config = self.pickle_project_config()
+        pickled_samples_config = self.pickle_samples_config()
         path = self.submit_file_path()
         submit_file = open(path, 'w')
-        submit_file_contents = self.condor_submit_file_contents(pickled_str)
+        submit_file_contents = self.condor_submit_file_contents(pickled_pipeline, pickled_project_config, pickled_samples_config)
         print(submit_file_contents, file=submit_file)
         submit_file.close()
 
     def construct_condor_command(self):
-        cfg = ProjectConfig()
+        cfg = global_configs.project_config
         command = "csubmit.sh"
         command += " -g "
         command += " -c " + str(self.ncores)
@@ -90,14 +104,11 @@ class CondorSubmitter():
         return CondorLogCleaner(*self.get_condor_log_path_parameters())
 
     def get_condor_log_path_parameters(self):
-        project_config = ProjectConfig()
+        project_config = global_configs.project_config
         return self.pipeline.name, project_config.condor_logs_dir
 
 
 if __name__ == "__main__":
-    from config.samples_config import SamplesConfig
-    from structures.mate import Mate
-    from pipeline.mate_pipeline import MatePipeline
     from structures.mate_handler import MateHandler
     from pipeline.sample_pipeline import SamplePipeline
     #cnfg = SamplesConfig("Config/samples_config.yaml")
