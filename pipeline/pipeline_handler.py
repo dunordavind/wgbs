@@ -13,7 +13,7 @@ from condor.condor_log_cleaner import CondorLogCleaner
 
 
 
-class CondorSubmitter():
+class PipelineHandler():
     def __init__(self, pipeline, ncores=10, memory=10000, clean_output_dir=False):
         self.__pipeline = pipeline
         self.__ncores = ncores
@@ -87,14 +87,34 @@ class CondorSubmitter():
         command += "\""
         return command
 
+    def construct_makefile_rule(self, goal, dependencies):
+        make_rule = goal + " : " +  dependencies + "\n"
+        make_rule += "\t" + "python /mnt/lustre/Home/petr_v/My_Code/condor-submitter/condor-submitter.py "
+        make_rule += " '"
+        make_rule += self.construct_condor_command()
+        make_rule += " '" + "\n"
+        #print("Making rule")
+        #print(make_rule)
+        return make_rule
+
+    def construct_align_makefile_rule(self):
+        return self.construct_makefile_rule(self.pipeline.dir_info.deduplicated_bam_path, self.submit_file_path())
+
+    def construct_merge_makefile_rule(self):
+        return self.construct_makefile_rule(self.pipeline.dir_info.analysis_log_path,
+                                            " ".join(self.pipeline.dir_info.list_aligned_bam_files()))
+
     def submit_condor_command(self):
         output = run_shell_command(self.construct_condor_command())
         print(output)
 
-    def run_on_condor(self):
+    def prepare(self):
         self.get_condor_cleaner().clean()
         self.pipeline.setup()
         self.write_condor_submit_file()
+
+    def run_on_condor(self):
+        self.prepare()
         self.submit_condor_command()
 
     def get_condor_log(self) -> CondorLog:
@@ -121,5 +141,5 @@ if __name__ == "__main__":
     mate_handler = MateHandler()
     sample = mate_handler.get_sample_by_name("33_epignome_v4")
     sp = SamplePipeline(sample)
-    submitter = CondorSubmitter(sp, ncores=45, memory=450000)
+    submitter = PipelineHandler(sp, ncores=45, memory=450000)
     submitter.run_on_condor()

@@ -3,7 +3,7 @@ from config.samples_config import SamplesConfig
 from config.project_config import ProjectConfig
 from structures.mate import Mate
 from pipeline.mate_pipeline import MatePipeline
-from pipeline.condor_submitter import CondorSubmitter
+from pipeline.pipeline_handler import PipelineHandler
 from condor.condor_states import CondorStates
 from condor.condor_log import CondorLog
 
@@ -34,7 +34,7 @@ class CondorProject():
     def submit(self):
         for mate in self.list_mates_to_align():
             pipeline = MatePipeline(mate)
-            submitter = CondorSubmitter(pipeline, self.ncores, self.memory)
+            submitter = PipelineHandler(pipeline, self.ncores, self.memory)
             submitter.run_on_condor()
             self.condor_logs.append(submitter.get_condor_log())
 

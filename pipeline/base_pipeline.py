@@ -30,7 +30,7 @@ class BasePipeline(object, metaclass=abc.ABCMeta):
             command_str = deduplicate_bismark_command_str(self.dir_info.aligned_bam_path)
             run_shell_command(command_str)
         except:
-            raise Exception("Couldn't deduplicate for mate " + self.name() + "! Please inspect the log file")
+            raise Exception("Couldn't deduplicate for mate " + self.name + "! Please inspect the log file")
 
     def extract_methylation(self):
         try:
@@ -39,4 +39,4 @@ class BasePipeline(object, metaclass=abc.ABCMeta):
             command = extractor.bismark_met_extractor_command()
             run_shell_command(command)
         except:
-            raise Exception("Couldn't extract methylation for mate " + self.name() + "! Please inspect the log file")
+            raise Exception("Couldn't extract methylation for mate " + self.name + "! Please inspect the log file")
