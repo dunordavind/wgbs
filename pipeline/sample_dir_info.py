@@ -1,16 +1,17 @@
-import sys
 import os
 import shutil
+import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import config.global_configs as global_configs
 from pipeline.mate_dir_info import MateDirInfo
-from config.project_config import ProjectConfig
 
 __author__ = 'med-pvo'
 
 
 class SampleDirInfo:
     def __init__(self, sample):
-        config = ProjectConfig()
+        config = global_configs.project_config
         self.sample = sample
         self.__output_dir = os.path.join(config.merged_samples_dir, self.sample.name)
 

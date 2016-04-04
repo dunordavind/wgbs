@@ -3,8 +3,8 @@ import os
 
 
 class ProjectConfig:
-    def __init__(self):  # , config_yaml, samples_yaml):
-        self.__config_yaml_path = "Config/project_config.yaml"
+    def __init__(self, config_yaml_path="/mnt/lustre/Raw_Data_Archive/Sequencing/Whole_Genome_Bisulfite_Seq/Human_Islets/Scripts/Configs/project_config.yaml"):  # , config_yaml, samples_yaml):
+        self.__config_yaml_path = config_yaml_path
         config_stream = open(self.config_yaml_path, 'r')
         self.__config_yaml = yaml.load(config_stream)
         config_stream.close()

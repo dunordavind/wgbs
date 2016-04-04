@@ -1,7 +1,8 @@
-import sys
 import os
+import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from config.samples_config import SamplesConfig
+import config.global_configs as global_configs
 from structures.mate import Mate
 from structures.sample import Sample
 from pipeline.mate_dir_info import MateDirInfo
@@ -10,8 +11,8 @@ __author__ = 'med-pvo'
 
 
 class MateHandler():
-    def __init__(self, config_file_path):
-        self.samples_config = SamplesConfig(config_file_path)
+    def __init__(self):
+        self.samples_config = global_configs.samples_config
 
     def list_project_mates(self):
         mates = self.samples_config.list_mates()

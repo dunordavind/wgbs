@@ -2,7 +2,7 @@ __author__ = 'med-pvo'
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from config.project_config import ProjectConfig
+import config.global_configs as global_configs
 
 
 class BismarkMethylationExtractor():
@@ -20,7 +20,7 @@ class BismarkMethylationExtractor():
         return self.__output_dir
 
     def bismark_met_extractor_command(self):
-        config = ProjectConfig()
+        config = global_configs.project_config
         command = config.bismark_methylation_extractor_path
         command += " -p "
         command += " -o " + self.output_dir + " "

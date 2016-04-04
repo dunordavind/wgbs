@@ -1,15 +1,17 @@
-import multiprocessing as mp
-import os
-import subprocess as sp
+# coding=utf-8
 import re
+import sys
+import os
+import multiprocessing as mp
+import subprocess as sp
 from functools import partial
-
-from helpers.chunk_list import *
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+from helpers.chunk_list import chunk_list
 from config.project_config import *
-
+import config.global_configs as global_configs
 
 def call_trim_galore(file_pairs, output_dir):
-    config = ProjectConfig()
+    config = global_configs.project_config
 
     for file_pair in file_pairs:
         command = config.trim_galore_path

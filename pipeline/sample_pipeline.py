@@ -30,7 +30,7 @@ class SamplePipeline(BasePipeline):
 
     @property
     def filter(self):
-        return True
+        return False
 
     @property
     def dir_info(self):
